@@ -99,7 +99,6 @@ jobs:
           SINGLE_COMMIT: true
           COMMIT_MESSAGE: '[doc] build from commit ${{ github.sha }}'
 
-
   dockers:
     name: Docker
     if: github.ref == 'refs/heads/master'
@@ -112,7 +111,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        if: env.DOCKERHUB_USERNAME != null
+        if: env.DOCKERHUB_USERNAME != ''
         uses: actions/checkout@v4
         with:
           # make sure "make docker.push" can get the git history
@@ -130,19 +129,22 @@ jobs:
             ./local
             ./.nvm
             ./node_modules
-          key: python-ubuntu-20.04-3.12-${{ hashFiles('requirements*.txt', 'setup.py','.nvmrc', 'package.json') }}
+          key: python-ubuntu-24.04-3.12-${{ hashFiles('requirements*.txt', 'setup.py','.nvmrc', 'package.json') }}
       - name: Set up QEMU
-        if: env.DOCKERHUB_USERNAME != null
+        if: env.DOCKERHUB_USERNAME != ''
         uses: docker/setup-qemu-action@v1
+
       - name: Set up Docker Buildx
-        if: env.DOCKERHUB_USERNAME != null
+        if: env.DOCKERHUB_USERNAME != ''
         uses: docker/setup-buildx-action@v1
+
       - name: Login to DockerHub
-        if: env.DOCKERHUB_USERNAME != null
+        if: env.DOCKERHUB_USERNAME != ''
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Build and push
-        if: env.DOCKERHUB_USERNAME != null
+        if: env.DOCKERHUB_USERNAME != ''
         run: make -e GIT_URL=$(git remote get-url origin) docker.buildx
